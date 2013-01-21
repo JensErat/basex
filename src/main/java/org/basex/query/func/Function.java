@@ -152,7 +152,7 @@ public enum Function {
   /** XQuery function. */
   FUNCTION_ARITY(FNFunc.class, "function-arity(function)", ITR, FUN_O),
   /** XQuery function. */
-  FUNCTION_LOOKUP(FNFunc.class, "function-lookup(name,arity)", FUN_O, QNM, ITR),
+  FUNCTION_LOOKUP(FNFunc.class, "function-lookup(name,arity)", FUN_OZ, QNM, ITR),
   /** XQuery function. */
   MAP(FNFunc.class, "map(function,seq)", ITEM_ZM,
       FuncType.get(ITEM_ZM, ITEM).seqType(), ITEM_ZM),
@@ -600,6 +600,22 @@ public enum Function {
       EMP, 2, STR, STR, STR),
   */
 
+  /* FNFetch functions. */
+
+  /** XQuery function. */
+  _FETCH_TEXT(FNFetch.class, "text(uri[,encoding)", STR, 1, STR, STR),
+  /** XQuery function. */
+  _FETCH_BINARY(FNFetch.class, "binary(uri)", B64, STR),
+  /** XQuery function. */
+  _FETCH_CONTENT_TYPE(FNFetch.class, "content-type(uri)", STR, STR),
+
+  /* FNHTML functions. */
+
+  /** XQuery function. */
+  _HTML_PARSER(FNHtml.class, "parser()", STR),
+  /** XQuery function. */
+  _HTML_PARSE(FNHtml.class, "parse(input[,options)", DOC_O, 1, STR, ITEM),
+
   /* FNIndex functions. */
 
   /** XQuery function. */
@@ -911,14 +927,16 @@ public enum Function {
     URIS.put(FNZip.class,    ZIPURI);
     URIS.put(FNRepo.class,   REPOURI);
     // internal functions
+    URIS.put(FNAdmin.class,    ADMINURI);
     URIS.put(FNArchive.class,  ARCHIVEURI);
     URIS.put(FNClient.class,   CLIENTURI);
     URIS.put(FNConvert.class,  CONVERTURI);
     URIS.put(FNDb.class,       DBURI);
-    URIS.put(FNAdmin.class,    ADMINURI);
+    URIS.put(FNFetch.class,    FETCHURI);
     URIS.put(FNFt.class,       FTURI);
-    URIS.put(FNHof.class,      HOFURI);
     URIS.put(FNHash.class,     HASHURI);
+    URIS.put(FNHof.class,      HOFURI);
+    URIS.put(FNHtml.class,     HTMLURI);
     URIS.put(FNIndex.class,    INDEXURI);
     URIS.put(FNJson.class,     JSONURI);
     URIS.put(FNOut.class,      OUTURI);

@@ -227,7 +227,7 @@ public abstract class Command extends Progress {
    * @return {@code true}
    */
   protected final boolean info(final String str, final Object... ext) {
-    info.addExt(str, ext).add(NL);
+    if(!str.isEmpty()) info.addExt(str, ext).add(NL);
     return true;
   }
 
@@ -244,8 +244,8 @@ public abstract class Command extends Progress {
   }
 
   /**
-   * Adds the names of the database addressed by the argument index.
-   * Skipped if the argument uses glob syntax.
+   * Adds the names of the database that has been addressed by the argument index.
+   * No databases will be added if the argument uses glob syntax.
    * @param db databases
    * @param a argument index
    * @return {@code false} if database cannot be determined due to glob syntax

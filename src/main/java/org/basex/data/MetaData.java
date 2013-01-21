@@ -91,9 +91,9 @@ public final class MetaData {
   /** Flag for out-of-date indexes. */
   private volatile boolean oldindex;
   /** Flag for out-of-date wildcard index (legacy, deprecated). */
-  public volatile boolean wcindex;
+  private volatile boolean wcindex;
   /** Scoring mode (legacy, deprecated). */
-  public volatile int scoring;
+  private volatile int scoring;
 
   /**
    * Constructor, specifying the database properties.
@@ -133,7 +133,7 @@ public final class MetaData {
     maxlen = prop.num(Prop.MAXLEN);
     maxcats = prop.num(Prop.MAXCATS);
     language = Language.get(prop);
-    users = new Users(false);
+    users = new Users(null);
   }
 
   // STATIC METHODS ==========================================================

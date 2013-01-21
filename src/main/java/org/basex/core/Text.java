@@ -56,7 +56,7 @@ public interface Text {
   String LOCALMODE = "Standalone";
   /** Start information. */
   String LOCALINFO =
-    " [-bcdiLosuvVwxz] [input]" + NL +
+    " [-bcdiLoqsuvVwxz] [input]" + NL +
     "  [input]     Execute input file or expression" + NL +
     "  -b<pars>    Bind external query variables" + NL +
     "  -c<input>   Execute commands from file or string" + NL +
@@ -64,6 +64,7 @@ public interface Text {
     "  -i<input>   Open initial file or database" + NL +
     "  -L          Append newlines to query results" + NL +
     "  -o<output>  Write output to file" + NL +
+    "  -q<expr>    Execute XQuery expression" + NL +
     "  -s<pars>    Set serialization parameter(s)" + NL +
     "  -u          Write updates back to original files" + NL +
     "  -v/V        Show (all) process info" + NL +
@@ -75,7 +76,7 @@ public interface Text {
   String CLIENTMODE = "Client";
   /** Client start information. */
   String CLIENTINFO =
-    " [-bcdiLnopPsUvVwxz] [input]" + NL +
+    " [-bcdiLnopPqsUvVwxz] [input]" + NL +
     "  [input]     Execute input file or expression" + NL +
     "  -b<pars>    Bind external query variables" + NL +
     "  -c<input>   Execute commands from file or string" + NL +
@@ -86,6 +87,7 @@ public interface Text {
     "  -o<output>  Write output to file" + NL +
     "  -p<port>    Set server port" + NL +
     "  -P<pass>    Specify user password" + NL +
+    "  -q<expr>    Execute XQuery expression" + NL +
     "  -s<pars>    Set serialization parameter(s)" + NL +
     "  -U<name>    Specify user name" + NL +
     "  -v/V        Show (all) process info" + NL +
@@ -1047,6 +1049,9 @@ public interface Text {
   /** File description: Command scripts. */
   String BXS_FILES = "Command Scripts";
 
+  /** "Stack Trace". */
+  String STACK_TRACE_C = "Stack Trace" + COL;
+
   /** Dialog title for database options. */
   String CREATE_DATABASE = lang("create_database");
   /** Chop whitespaces. */
@@ -1258,7 +1263,7 @@ public interface Text {
   /** Contributors info. */
   String TEAM1 = lang("team") + ": Alexander Holupirek, Michael Seiferle,";
   /** Developer names. */
-  String TEAM2 = "Leo W\u00F6rteler, Lukas Kircher, Dimitar Popov";
+  String TEAM2 = "Lukas Kircher, Leo W\u00F6rteler";
   /** Developer names. */
   String AND_OTHERS = lang("and_others");
   /** Translation. */

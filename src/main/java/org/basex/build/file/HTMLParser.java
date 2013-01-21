@@ -23,18 +23,24 @@ import org.xml.sax.*;
  * @author Christian Gruen
  */
 public final class HTMLParser extends XMLParser {
+  /** Name of HTML Parser. */
+  public static final String NAME = "TagSoup";
   /** TagSoup URL. */
   private static final String FEATURES = "http://www.ccil.org/~cowan/tagsoup/features/";
 
+  /** XML parser class string. */
+  private static final String PCLASS = "org.ccil.cowan.tagsoup.Parser";
+  /** XML writer class string. */
+  private static final String WCLASS = "org.ccil.cowan.tagsoup.XMLWriter";
   /** HTML reader. */
-  private static final Class<?> READER = Reflect.find("org.ccil.cowan.tagsoup.Parser");
+  private static final Class<?> READER = Reflect.find(PCLASS);
   /** HTML writer. */
-  private static final Constructor<?> WRITER = Reflect.find(Reflect.find(
-      "org.ccil.cowan.tagsoup.XMLWriter"), Writer.class);
+  private static final Constructor<?> WRITER =
+      Reflect.find(Reflect.find(WCLASS), Writer.class);
   /** XML writer output property method. */
   private static final Method METHOD = Reflect.method(
-      Reflect.find("org.ccil.cowan.tagsoup.XMLWriter"), "setOutputProperty",
-      new Class[] { String.class, String.class});
+      Reflect.find(WCLASS), "setOutputProperty",
+      new Class[] { String.class, String.class });
 
   /**
    * Checks if a CatalogResolver is available.
@@ -45,13 +51,33 @@ public final class HTMLParser extends XMLParser {
   }
 
   /**
+   * Returns the name of the parser, or an empty string.
+   * @return name of parser
+   */
+  public static String parser() {
+    return available() ? NAME : "";
+  }
+
+  /**
    * Constructor.
    * @param source document source
    * @param pr database properties
    * @throws IOException I/O exception
    */
   public HTMLParser(final IO source, final Prop pr) throws IOException {
-    super(toXML(source, pr.get(Prop.HTMLOPT)), pr);
+    this(source, pr.get(Prop.HTMLOPT), pr);
+  }
+
+  /**
+   * Constructor.
+   * @param source document source
+   * @param options options
+   * @param pr database properties
+   * @throws IOException I/O exception
+   */
+  public HTMLParser(final IO source, final String options, final Prop pr)
+      throws IOException {
+    super(toXML(source, options), pr);
   }
 
   /**
@@ -159,7 +185,7 @@ public final class HTMLParser extends XMLParser {
   }
 
   /**
-   * Reflection invoke XMLWriter.setProperty().
+   * Reflection invoke XMLWriter.setOutputProperty().
    * @param p property
    * @param v value
    */

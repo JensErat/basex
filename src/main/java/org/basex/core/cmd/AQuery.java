@@ -63,7 +63,6 @@ abstract class AQuery extends Command {
   final boolean query(final String query) {
     final Performance p = new Performance();
     String err;
-    String inf = "";
     if(qe != null) {
       err = qe.getMessage();
     } else {
@@ -116,18 +115,20 @@ abstract class AQuery extends Command {
         out.flush();
         final long time = pars + comp + eval + prnt;
         return info(NL + QUERY_EXECUTED_X, Performance.getTime(time, runs));
+
       } catch(final QueryException ex) {
         Util.debug(ex);
         err = ex.getMessage();
+        final String stack = ex.getStack();
+        if(!stack.isEmpty()) err += NL + NL + STACK_TRACE_C + stack;
       } catch(final IOException ex) {
         Util.debug(ex);
         err = Util.message(ex);
       } catch(final ProgressException ex) {
         err = INTERRUPTED;
         // store any useful info (e.g. query plan):
-        inf = info();
       } catch(final RuntimeException ex) {
-        Util.debug(qp.info());
+        Util.debug(info() + NL + qp.info());
         throw ex;
       } catch(final StackOverflowError ex) {
         Util.debug(ex);
@@ -138,14 +139,17 @@ abstract class AQuery extends Command {
       }
     }
 
-    error(err);
-    if(Prop.debug || err.startsWith(INTERRUPTED)) {
-      info(NL);
-      info(QUERY_CC + query);
-      info(qp.info());
-      info(inf);
+    // will only be evaluated when an error has occurred
+    if(prop.is(Prop.QUERYINFO)) {
+      final StringBuilder sb = new StringBuilder();
+      final String info = info();
+      if(!info.isEmpty()) sb.append(info);
+      sb.append(NL + QUERY_CC + query);
+      final String i = qp.info();
+      if(!i.isEmpty()) sb.append(i);
+      err = sb.append(NL + ERROR_C + NL + err).toString();
     }
-    return false;
+    return error(err);
   }
 
   /**
@@ -229,8 +233,7 @@ abstract class AQuery extends Command {
       final int runs) {
 
     final long total = pars + comp + eval + prnt;
-    info(NL);
-    info(QUERY_CC + QueryProcessor.removeComments(query, Integer.MAX_VALUE));
+    info(NL + QUERY_CC + QueryProcessor.removeComments(query, Integer.MAX_VALUE));
     info(qp.info());
     info(PARSING_CC + Performance.getTime(pars, runs));
     info(COMPILING_CC + Performance.getTime(comp, runs));
@@ -239,7 +242,7 @@ abstract class AQuery extends Command {
     info(TOTAL_TIME_CC + Performance.getTime(total, runs) + NL);
     if(context.mprop.is(MainProp.DBLOCKING)) {
       info(LOCKING_CC + (locked == null ? "global" :
-        ("local " + (locked.isEmpty() ? "" : Arrays.toString(locked.toArray())))));
+        "local " + (locked.isEmpty() ? "" : Arrays.toString(locked.toArray()))));
     }
     info(HITS_X_CC + hits + ' ' + (hits == 1 ? ITEM : ITEMS));
     info(UPDATED_CC + updates + ' ' + (updates == 1 ? ITEM : ITEMS));

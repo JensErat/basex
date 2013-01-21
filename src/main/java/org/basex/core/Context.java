@@ -106,8 +106,9 @@ public final class Context {
     sessions = new Sessions();
     blocker = new ClientBlocker();
     databases = new Databases(this);
-    locks = mp.is(MainProp.DBLOCKING) ? new DBLocking(mp) : new ProcessLocking(this);
-    users = new Users(true);
+    locks = mp.is(MainProp.DBLOCKING) && !Prop.gui ? new DBLocking(mp)
+                                                  : new ProcessLocking(this);
+    users = new Users(this);
     repo = new Repo(this);
     log = new Log(this);
     user = users.get(ADMIN);
@@ -215,17 +216,20 @@ public final class Context {
     if(!user.has(Perm.ADMIN)) pr.startTimeout(mprop.num(MainProp.TIMEOUT));
 
     // get touched databases
-    StringList sl = new StringList();
+    StringList sl = new StringList(1);
     if(!pr.databases(sl)) {
       // databases cannot be determined... pass null reference
       sl = null;
-    } else if(data != null) {
+    } else {
       // replace empty string with currently opened database and return array
       for(int d = 0; d < sl.size(); d++) {
-        if(sl.get(d).isEmpty()) sl.set(d, data.meta.name);
+        if(sl.get(d).isEmpty())
+          if(null == data) sl.deleteAt(d);
+          else sl.set(d, data.meta.name);
       }
     }
-    locks.acquire(pr, sl);
+    locks.acquire(pr, pr.updating ? new StringList(0) : sl,
+                                  pr.updating ? sl : new StringList(0));
   }
 
   /**

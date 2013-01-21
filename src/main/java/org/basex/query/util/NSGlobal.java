@@ -49,9 +49,11 @@ public final class NSGlobal {
     NS.add(CONVERT, CONVERTURI);
     NS.add(ADMIN, ADMINURI);
     NS.add(DB, DBURI);
+    NS.add(FETCH, FETCHURI);
     NS.add(FT, FTURI);
     NS.add(HASH, HASHURI);
     NS.add(HOF, HOFURI);
+    NS.add(HTML, HTMLURI);
     NS.add(INDEX, INDEXURI);
     NS.add(JSON, JSONURI);
     NS.add(OUT, OUTURI);

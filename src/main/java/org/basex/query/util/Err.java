@@ -85,10 +85,22 @@ public enum Err {
   /** BXDB0012. */
   BXDB_CREATE(BXDB, 12, "Database '%' can only be create once."),
 
+  // Fetch module
+
+  /** BXFE0001. */
+  BXFE_IO(BXFE, 1, "%"),
+  /** BXFE0002. */
+  BXFE_ENCODING(BXFE, 2, "Encoding not supported: '%'."),
+
   // Fulltext module
 
   /** BXFT0001. */
   BXFT_MATCH(BXFT, 1, "Either wildcards or fuzzy search supported."),
+
+  // HTML module
+
+  /** BXHL0001. */
+  BXHL_IO(BXHL, 1, "%"),
 
   // JSON module
 
@@ -99,7 +111,7 @@ public enum Err {
   /** BXJS0002. */
   BXJS_SER(BXJS, 1, "JSON serialization: %."),
 
-  /// Process module
+  // Process module
 
   /** BXPR9999. */
   BXPR_ENC(BXPR, 9999, "Encoding not supported: '%'."),
@@ -155,7 +167,7 @@ public enum Err {
   /** BXVA0001. */
   BXVA_FAIL(BXVA, 1, "Validation failed: %"),
 
-  // Fulltext module
+  // XQuery module
 
   /** BXXQ0001. */
   BXXQ_UPDATING(BXXQ, 1, "No updating expression allowed."),
@@ -963,6 +975,8 @@ public enum Err {
   /** XUST0001. */
   UPNOT(XUST, 1, "%: no updating expression allowed."),
   /** XUST0001. */
+  UPALL(XUST, 1, "%: all expressions must be updating or return an empty sequence."),
+  /** XUST0001. */
   UPCTX(XUST, 1, "Context item may not declare an updating expression."),
   /** XUST0002. */
   UPEXPECTT(XUST, 2, "Updating expression expected in modify clause."),
@@ -1052,7 +1066,9 @@ public enum Err {
     /** BXCL Error type. */ BXCL(QueryText.BXERR, QueryText.BXERRORS),
     /** BXCO Error type. */ BXCO(QueryText.BXERR, QueryText.BXERRORS),
     /** BXDB Error type. */ BXDB(QueryText.BXERR, QueryText.BXERRORS),
+    /** BXFE Error type. */ BXFE(QueryText.BXERR, QueryText.BXERRORS),
     /** BXFT Error type. */ BXFT(QueryText.BXERR, QueryText.BXERRORS),
+    /** BXHL Error type. */ BXHL(QueryText.BXERR, QueryText.BXERRORS),
     /** BXJS Error type. */ BXJS(QueryText.BXERR, QueryText.BXERRORS),
     /** BXPR Error type. */ BXPR(QueryText.BXERR, QueryText.BXERRORS),
     /** BXRE Error type. */ BXRE(QueryText.BXERR, QueryText.BXERRORS),
