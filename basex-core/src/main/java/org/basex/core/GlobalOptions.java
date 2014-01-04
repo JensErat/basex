@@ -36,6 +36,8 @@ public final class GlobalOptions extends Options {
   public static final BooleanOption LANGKEYS = new BooleanOption("LANGKEYS", false);
   /** Applied locking algorithm: local (database) vs. global (process) locking. */
   public static final BooleanOption GLOBALLOCK = new BooleanOption("GLOBALLOCK", false);
+  /** Disable database determination for local locking, only use XQuery locks. */
+  public static final BooleanOption MANUALLOCK = new BooleanOption("MANUALLOCK", false);
 
   /** Comment: written to options file. */
   public static final Comment C_CLIENT = new Comment("Client/Server Architecture");

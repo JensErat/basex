@@ -17,7 +17,7 @@ import org.basex.query.up.primitives.*;
 final class DatabaseModifier extends ContextModifier {
   @Override
   void add(final Operation o, final QueryContext ctx) throws QueryException {
-    add(o);
+    super.add(o, ctx);
     // check permissions
     if(o instanceof DBCreate) {
       if(!ctx.context.perm(Perm.CREATE, null)) throw BASX_PERM.get(o.getInfo(), Perm.CREATE);

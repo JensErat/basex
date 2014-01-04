@@ -84,6 +84,8 @@ public class QueryParser extends InputParser {
   private final QueryContext ctx;
   /** Static context. */
   private final StaticContext sc;
+  /** Prefix for user defined locks or empty for MANUALLOCK. */
+  public final String userPrefix;
 
   /** Temporary token cache. */
   private final TokenBuilder tok = new TokenBuilder();
@@ -124,6 +126,8 @@ public class QueryParser extends InputParser {
 
     super(in);
     ctx = c;
+
+    userPrefix = c.context.globalopts.get(GlobalOptions.MANUALLOCK) ? "" : "+";
 
     // set path to query file
     final MainOptions opts = c.context.options;
@@ -592,11 +596,13 @@ public class QueryParser extends InputParser {
     } else if(eq(qnm.uri(), QUERYURI)) {
       // query-specific options
       if(name.equals(READ_LOCK)) {
-        for(final byte[] lock : split(val, ','))
-          ctx.readLocks.add(DBLocking.USER_PREFIX + string(lock).trim());
+        if (Token.eq(DBLocking.GLOBAL_LOCK, val)) ctx.readLocks = null;
+        else for(final byte[] lock : split(val, ','))
+          ctx.readLocks.add(userPrefix + string(lock).trim());
       } else if(name.equals(WRITE_LOCK)) {
-        for(final byte[] lock : split(val, ','))
-          ctx.writeLocks.add(DBLocking.USER_PREFIX + string(lock).trim());
+        if (Token.eq(DBLocking.GLOBAL_LOCK, val)) ctx.writeLocks = null;
+        else for(final byte[] lock : split(val, ','))
+          ctx.writeLocks.add(userPrefix + string(lock).trim());
       } else {
         throw error(BASX_OPTIONS, name);
       }

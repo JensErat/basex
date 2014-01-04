@@ -254,8 +254,9 @@ public final class QueryResources {
    * Tries to open the addressed database, or returns {@code null}.
    * @param input query input
    * @return data reference
+   * @throws QueryException Query Exception
    */
-  private Data open(final QueryInput input) {
+  private Data open(final QueryInput input) throws QueryException {
     if(openDB && input.db != null) {
       try {
         // try to open database
@@ -341,8 +342,14 @@ public final class QueryResources {
   /**
    * Adds a data reference.
    * @param d data reference to be added
+   * @throws QueryException Query Exception
    */
-  public void addData(final Data d) {
+  public void addData(final Data d) throws QueryException {
+    if(ctx.context.globalopts.get(GlobalOptions.MANUALLOCK)
+        && !(null == ctx.readLocks || null == ctx.writeLocks
+        || ctx.readLocks.contains(d.meta.name) || ctx.writeLocks.contains(d.meta.name)))
+      throw new QueryException(
+        "Trying to access unlocked database \"" + d.meta.name + "\"!");
     if(datas == data.length) data = Array.copy(data, new Data[Array.newSize(datas)]);
     data[datas++] = d;
   }

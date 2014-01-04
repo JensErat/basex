@@ -102,10 +102,10 @@ public final class QueryContext extends Proc {
   /** Current timezone. */
   public Item zone;
 
-  /** Strings to lock defined by lock:read option. */
-  public final StringList readLocks = new StringList(0);
-  /** Strings to lock defined by lock:write option. */
-  public final StringList writeLocks = new StringList(0);
+  /** Strings to lock defined by lock:read option. May be null for global lock. */
+  public StringList readLocks = new StringList(0);
+  /** Strings to lock defined by lock:write option. May be null for global lock. */
+  public StringList writeLocks = new StringList(0);
 
   /** Pending updates. */
   public Updates updates;
@@ -376,9 +376,14 @@ public final class QueryContext extends Proc {
 
   @Override
   public void databases(final LockResult lr) {
-    lr.read.add(readLocks);
-    lr.write.add(writeLocks);
-    if(root == null || !root.databases(lr, this)) {
+    // Add locks defined by user
+    if (null == readLocks) lr.readAll = true;
+    else lr.read.add(readLocks);
+    if (null == writeLocks) lr.writeAll = true;
+    else lr.write.add(writeLocks);
+    // Do not determine databases to lock if MANUALLOCK is set
+    if(!context.globalopts.get(GlobalOptions.MANUALLOCK)
+        && (root == null || !root.databases(lr, this))) {
       if(updating) lr.writeAll = true;
       else lr.readAll = true;
     }
