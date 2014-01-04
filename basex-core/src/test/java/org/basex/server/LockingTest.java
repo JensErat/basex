@@ -226,4 +226,24 @@ public final class LockingTest extends SandboxTest {
     new XQuery("delete node /y").execute(context);
     new XQuery("let $d := '" + NAME + "' return doc($d)").execute(context);
   }
+
+  /**
+   * Tests for manual locking.
+   * @throws BaseXException database exception
+   */
+  @Test
+  public void manualLockingTest() throws BaseXException {
+    // Enable manual locking
+    context.globalopts.set(GlobalOptions.MANUALLOCK, true);
+    new CreateDB(NAME, "<x/>").execute(context);
+    try {
+      final String query = "declare option query:read-lock '" + NAME + "2'; doc('" + NAME + "')";
+      new XQuery(query).execute(context);
+      fail("Could access unlocked database");
+    } catch(BaseXException e) {
+      if (!e.getMessage().contains("Trying to access unlocked database")) throw e;
+    }
+    // Disable manual locking again
+    context.globalopts.set(GlobalOptions.MANUALLOCK, false);
+  }
 }

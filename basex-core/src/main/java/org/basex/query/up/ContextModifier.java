@@ -5,6 +5,7 @@ import static org.basex.query.util.Err.*;
 import java.io.*;
 import java.util.*;
 
+import org.basex.core.*;
 import org.basex.data.*;
 import org.basex.query.*;
 import org.basex.query.up.primitives.*;
@@ -31,18 +32,11 @@ public abstract class ContextModifier {
    * @param qc query context
    * @throws QueryException query exception
    */
-  abstract void add(final Update up, final QueryContext qc) throws QueryException;
-
-  /**
-   * Adds an update primitive to this context modifier.
-   * Will be called by {@link #add(Update, QueryContext)}.
-   * @param up update primitive
-   * @throws QueryException query exception
-   */
-  final void add(final Update up) throws QueryException {
+  void add(final Update up, final QueryContext qc) throws QueryException {
     if(up instanceof DataUpdate) {
       final DataUpdate dataUp = (DataUpdate) up;
       final Data data = dataUp.data();
+      testIsWriteLocked(qc, data.meta.name);
       DataUpdates ups = dbUpdates.get(data);
       if(ups == null) {
         ups = new DataUpdates(data);
@@ -54,13 +48,25 @@ public abstract class ContextModifier {
     } else {
       final NameUpdate nameUp = (NameUpdate) up;
       final String name = nameUp.name();
+      testIsWriteLocked(qc, name);
       NameUpdates ups = nameUpdates.get(name);
       if(ups == null) {
         ups = new NameUpdates();
         nameUpdates.put(name, ups);
       }
       ups.add(nameUp);
-    }
+    } // TODO unexpected
+  }
+
+  /**
+   * Test if database is write locked or throw Exception.
+   * @param qc query context
+   * @param name database name
+   * @throws QueryException if no write lock on database
+   */
+  private void testIsWriteLocked(final QueryContext qc, final String name) throws QueryException {
+    if (qc.context.globalopts.get(GlobalOptions.MANUALLOCK) && !qc.writeLocks.contains(name))
+      throw new QueryException("Trying to access unlocked database \"" + name + "\"!");
   }
 
   /**

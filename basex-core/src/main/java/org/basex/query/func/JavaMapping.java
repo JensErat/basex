@@ -190,8 +190,10 @@ public abstract class JavaMapping extends Arr {
     // Add module locks to QueryContext.
     final QueryModule.Lock lock = meth.getAnnotation(QueryModule.Lock.class);
     if(lock != null) {
-      for(final String read : lock.read()) qc.readLocks.add(DBLocking.MODULE_PREFIX + read);
-      for(final String write : lock.write()) qc.writeLocks.add(DBLocking.MODULE_PREFIX + write);
+      if(null != qc.readLocks) for(final String read : lock.read())
+        qc.readLocks.add(DBLocking.MODULE_PREFIX + read);
+      if(null != qc.writeLocks) for(final String write : lock.write())
+        qc.writeLocks.add(DBLocking.MODULE_PREFIX + write);
     }
 
     return meth;

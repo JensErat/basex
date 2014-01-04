@@ -57,6 +57,7 @@ public abstract class SandboxTest {
     ctx.globalopts.set(GlobalOptions.WEBPATH, sb.path() + "/webapp");
     ctx.globalopts.set(GlobalOptions.RESTXQPATH, sb.path() + "/webapp");
     ctx.globalopts.set(GlobalOptions.REPOPATH, sb.path() + "/repo");
+    ctx.globalopts.set(GlobalOptions.MANUALLOCK, false);
   }
 
   /**

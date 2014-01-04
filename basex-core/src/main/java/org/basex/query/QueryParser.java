@@ -566,12 +566,16 @@ public class QueryParser extends InputParser {
       qc.tempOpts.add(name).add(string(val));
     } else if(eq(qnm.uri(), QUERYURI)) {
       // query-specific options
+      String prefix =
+          qc.context.globalopts.get(GlobalOptions.MANUALLOCK) ? "" : DBLocking.USER_PREFIX;
       if(name.equals(READ_LOCK)) {
-        for(final byte[] lock : split(val, ','))
-          qc.readLocks.add(DBLocking.USER_PREFIX + string(lock).trim());
+        if (Token.eq(DBLocking.GLOBAL_LOCK, val)) qc.readLocks = null;
+        else for(final byte[] lock : split(val, ','))
+          qc.readLocks.add(prefix + string(lock).trim());
       } else if(name.equals(WRITE_LOCK)) {
-        for(final byte[] lock : split(val, ','))
-          qc.writeLocks.add(DBLocking.USER_PREFIX + string(lock).trim());
+        if (Token.eq(DBLocking.GLOBAL_LOCK, val)) qc.writeLocks = null;
+        else for(final byte[] lock : split(val, ','))
+          qc.writeLocks.add(prefix + string(lock).trim());
       } else {
         throw error(BASX_OPTIONS, name);
       }

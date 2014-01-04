@@ -66,8 +66,9 @@ public final class QueryResources {
    * Compiles the resources.
    * @param nodes input node set
    * @return context value
+   * @throws QueryException on unlocked database
    */
-  Value compile(final DBNodes nodes) {
+  Value compile(final DBNodes nodes) throws QueryException {
     // assign initial context value
     final Data data = nodes.data;
     final boolean all = nodes.all;
@@ -348,8 +349,9 @@ public final class QueryResources {
    * Tries to open the addressed database, or returns {@code null}.
    * @param input query input
    * @return data reference
+   * @throws QueryException Query Exception
    */
-  private Data open(final QueryInput input) {
+  private Data open(final QueryInput input) throws QueryException {
     if(input.db != null) {
       try {
         // try to open database
@@ -426,9 +428,15 @@ public final class QueryResources {
   /**
    * Adds a data reference.
    * @param data data reference to be added
+   * @throws QueryException Query Exception
    * @return argument
    */
-  private Data addData(final Data data) {
+  public Data addData(final Data data) throws QueryException {
+    if(qc.context.globalopts.get(GlobalOptions.MANUALLOCK)
+        && !(null == qc.readLocks || null == qc.writeLocks
+        || qc.readLocks.contains(data.meta.name) || qc.writeLocks.contains(data.meta.name)))
+      throw new QueryException(
+        "Trying to access unlocked database \"" + data.meta.name + "\"!");
     datas.add(data);
     return data;
   }

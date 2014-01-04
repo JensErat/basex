@@ -33,6 +33,10 @@ public class CommandLockingTest extends SandboxTest {
   private static final StringList NONE = new StringList(0);
   /** StringList containing name. */
   private static final StringList NAME_LIST = new StringList(NAME);
+  /** StringList containing name2. */
+  private static final StringList NAME2_LIST = new StringList(NAME2);
+  /** StringList containing name and name2. */
+  private static final StringList NAME_NAME2_LIST = new StringList(NAME, NAME2);
   /** StringList containing context. */
   private static final StringList CTX_LIST = new StringList(DBLocking.CTX);
   /** StringList containing collection. */
@@ -113,6 +117,24 @@ public class CommandLockingTest extends SandboxTest {
     ckDBs(new ShowUsers(), false, ADMIN_LIST);
     ckDBs(new ShowUsers(NAME), false, ADMIN_NAME);
     ckDBs(new Store(FILE), true, CTX_LIST);
+  }
+
+  /** Tests manual locks defined by XQuery option. */
+  @Test
+  public void xqueryOption() {
+    // Enable manual locking
+    DUMMY_CONTEXT.globalopts.set(GlobalOptions.MANUALLOCK, true);
+    ckDBs(new XQuery("declare option query:read-lock '" + NAME + "'; 1"), false, NAME_LIST);
+    ckDBs(new XQuery("declare option query:write-lock '" + NAME + "'; 1"), true, NAME_LIST);
+    ckDBs(new XQuery("declare option query:read-lock '" + NAME + "," + NAME2 + "'; 1"), false,
+        NAME_NAME2_LIST);
+    ckDBs(new XQuery("declare option query:write-lock '" + NAME + "," + NAME2 + "'; 1"), true,
+        NAME_NAME2_LIST);
+    ckDBs(new XQuery("declare option query:read-lock '" + NAME
+        + "'; declare option query:write-lock '" + NAME2 + "'; 1"), NAME_LIST, NAME_LIST,
+        NAME2_LIST, NAME2_LIST);
+    // Disable manual locking again
+    DUMMY_CONTEXT.globalopts.set(GlobalOptions.MANUALLOCK, false);
   }
 
   /** Tests locked databases in XQuery queries.

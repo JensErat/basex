@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
 
+import org.basex.util.*;
 import org.basex.util.list.*;
 
 /**
@@ -49,6 +50,8 @@ public final class DBLocking implements Locking {
   public static final String USER_PREFIX = "+";
   /** Prefix for locks in Java modules. */
   public static final String MODULE_PREFIX = "&";
+  /** Identifier for global locks in query options. */
+  public static final byte[] GLOBAL_LOCK = Token.token("*");
 
   /** Lock for running thread counters. */
   private final Object globalLock = new Object();
