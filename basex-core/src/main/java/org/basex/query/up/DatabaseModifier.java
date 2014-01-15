@@ -17,6 +17,10 @@ import org.basex.query.up.primitives.*;
 final class DatabaseModifier extends ContextModifier {
   @Override
   void add(final Operation o, final QueryContext ctx) throws QueryException {
+    String name = o instanceof DBCreate ? ((DBCreate) o).name : o.getData().meta.name;
+    if (!ctx.writeLocks.contains(name))
+      throw new QueryException("Trying to access unlocked database \"" + name + "\"!");
+
     super.add(o, ctx);
     // check permissions
     if(o instanceof DBCreate) {

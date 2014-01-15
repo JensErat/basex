@@ -30,11 +30,8 @@ public abstract class ContextModifier {
    * @param ctx query context
    * @throws QueryException query exception
    */
+  @SuppressWarnings("unused")
   void add(final Operation p, final QueryContext ctx) throws QueryException {
-    String name = p instanceof DBCreate ? ((DBCreate) p).name : p.getData().meta.name;
-    if (!ctx.writeLocks.contains(name))
-      throw new QueryException("Trying to access unlocked database \"" + name + "\"!");
-
     if(p instanceof DBCreate) {
       final DBCreate c = (DBCreate) p;
       final DBCreate o = dbCreates.get(c.name);
