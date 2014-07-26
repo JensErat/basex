@@ -9,6 +9,7 @@ import org.basex.core.*;
 import org.basex.data.*;
 import org.basex.query.*;
 import org.basex.query.up.primitives.*;
+import org.basex.util.*;
 import org.basex.util.list.*;
 
 /**
@@ -45,7 +46,7 @@ public abstract class ContextModifier {
       // create temporary mem data instance if not available yet
       if(tmp == null) tmp = new MemData(data.meta.options);
       ups.add(dataUp, tmp);
-    } else {
+    } else if(up instanceof NameUpdate) {
       final NameUpdate nameUp = (NameUpdate) up;
       final String name = nameUp.name();
       testIsWriteLocked(qc, name);
@@ -55,7 +56,9 @@ public abstract class ContextModifier {
         nameUpdates.put(name, ups);
       }
       ups.add(nameUp);
-    } // TODO unexpected
+    } else {
+      throw Util.notExpected();
+    }
   }
 
   /**
