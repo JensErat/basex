@@ -2,8 +2,10 @@ FROM maven:3-jdk-7
 MAINTAINER Jens Erat <email@jenserat.de>
 
 COPY . /usr/src/basex/
+RUN readlink -f .
 RUN ls -l
 WORKDIR /usr/src/basex/basex-core
+RUN readlink -f .
 RUN ls -l
 RUN mvn clean install -DskipTests
 
