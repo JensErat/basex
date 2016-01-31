@@ -2,7 +2,9 @@ FROM maven:3-jdk-7
 MAINTAINER Jens Erat <email@jenserat.de>
 
 COPY . /usr/src/basex/
+RUN ls -l
 WORKDIR /usr/src/basex/basex-core
+RUN ls -l
 RUN mvn clean install -DskipTests
 
 RUN adduser --system --home /srv --disabled-password --disabled-login --uid 1984 basex && \
