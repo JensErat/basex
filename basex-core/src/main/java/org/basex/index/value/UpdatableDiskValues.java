@@ -135,7 +135,7 @@ public final class UpdatableDiskValues extends DiskValues {
       int currPos = 0;
       if (tokenize)
         currPos = idxl.readNum();
-      if(d < delSize && currId == ids[d] && (!tokenize || idxl.readNum() == posList.get(order[d])))
+      if(d < delSize && currId == ids[d] && (!tokenize || currPos == posList.get(order[d])))
         d++;
       else {
         newIds.add(currId);
