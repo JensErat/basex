@@ -1076,12 +1076,22 @@ public abstract class Data {
   }
 
   /**
+   * Array indexes for cache map.
+   */
+  public enum MapIndex {
+    /** id list reference. */
+    IDS,
+    /** pos list reference. */
+    POS
+  }
+
+  /**
    * Caches the text and id for a node with specified pre value.
    * @param pre pre value
    * @param type index type
    * @return cached texts and ids
    */
-  private TokenObjMap<IntList> cache(final int pre, final IndexType type) {
+  private TokenObjMap<IntList[]> cache(final int pre, final IndexType type) {
     return cache(new IntList(1).add(pre), type);
   }
 
@@ -1092,7 +1102,7 @@ public abstract class Data {
    * @param type index type
    * @return cached texts and ids
    */
-  private TokenObjMap<IntList> cache(final int pre, final int size, final IndexType type) {
+  private TokenObjMap<IntList[]> cache(final int pre, final int size, final IndexType type) {
     final IntList pres = new IntList(size);
     final int last = pre + size;
     for(int curr = pre; curr < last; curr++) pres.add(curr);
@@ -1105,8 +1115,8 @@ public abstract class Data {
    * @param type index type
    * @return cached texts and ids
    */
-  private TokenObjMap<IntList> cache(final IntList pres, final IndexType type) {
-    final TokenObjMap<IntList> map = new TokenObjMap<>();
+  private TokenObjMap<IntList[]> cache(final IntList pres, final IndexType type) {
+    final TokenObjMap<IntList[]> map = new TokenObjMap<>();
     final IndexNames in = new IndexNames(type, this);
     final boolean text = type == IndexType.TEXT;
     final int ps = pres.size(), kind = text ? TEXT : ATTR;
@@ -1114,11 +1124,12 @@ public abstract class Data {
       final int pre = pres.get(p);
       if(kind(pre) == kind && in.contains(pre, text)) {
         if(type == IndexType.TOKEN) {
+          int pos = 0;
           for(final byte[] token : distinctTokens(text(pre, text))) {
-            addId(map, token, pre);
+            addId(map, type, token, pre, pos++);
           }
         } else if(textLen(pre, text) <= meta.maxlen) {
-          addId(map, text(pre, text), pre);
+          addId(map, type, text(pre, text), pre, 0);
         }
       }
     }
@@ -1128,16 +1139,21 @@ public abstract class Data {
   /**
    * Adds a node id to the specified map.
    * @param map cached texts and ids
+   * @param type index type
    * @param text text
    * @param pre pre value
+   * @param pos token position, ignored for non-tokenized indexes
    */
-  private void addId(final TokenObjMap<IntList> map, final byte[] text, final int pre) {
-    IntList ids = map.get(text);
+  private void addId(final TokenObjMap<IntList[]> map, final IndexType type, final byte[] text,
+      final int pre, final Integer pos) {
+    IntList[] ids = map.get(text);
     if(ids == null) {
-      ids = new IntList(1);
+      ids = new IntList[] { new IntList(1), IndexType.TOKEN == type ? new IntList(1) : null };
       map.put(text, ids);
     }
-    ids.add(id(pre));
+    ids[MapIndex.IDS.ordinal()].add(id(pre));
+    if (type == IndexType.TOKEN)
+      ids[MapIndex.POS.ordinal()].add(id(pos));
   }
 
   // HELPER FUNCTIONS ===================================================================

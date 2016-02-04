@@ -119,12 +119,12 @@ public class DiskValues extends ValueIndex {
   }
 
   @Override
-  public void add(final TokenObjMap<IntList> map) {
+  public void add(final TokenObjMap<IntList[]> map) {
     throw Util.notExpected();
   }
 
   @Override
-  public void delete(final TokenObjMap<IntList> map) {
+  public void delete(final TokenObjMap<IntList[]> map) {
     throw Util.notExpected();
   }
 

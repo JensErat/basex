@@ -298,8 +298,18 @@ public final class DataAccess implements Closeable {
    * @param values integer values
    */
   public void writeNums(final long p, final int[] values) {
+    writeNums(p, values.length, values);
+  }
+
+  /**
+   * Writes integers to the file in compressed form.
+   * @param p write position
+   * @param len number of tuples
+   * @param values integer values
+   */
+  public void writeNums(final long p, final int len, final int[] values) {
     cursor(p);
-    writeNum(values.length);
+    writeNum(len);
     for(final int n : values) writeNum(n);
   }
 

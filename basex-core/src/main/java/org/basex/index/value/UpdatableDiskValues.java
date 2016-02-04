@@ -35,7 +35,7 @@ public final class UpdatableDiskValues extends DiskValues {
   }
 
   @Override
-  public synchronized void add(final TokenObjMap<IntList> map) {
+  public synchronized void add(final TokenObjMap<IntList[]> map) {
     // create a sorted list of the new keys and update the old keys
     final TokenList newKeys = new TokenList();
 
@@ -45,18 +45,24 @@ public final class UpdatableDiskValues extends DiskValues {
     for(final byte[] key : new TokenList(map).sort()) {
       index = get(key, index, sz);
       if(index >= 0) {
-        final int[] ids = map.get(key).finish();
+        final int[] ids = map.get(key)[Data.MapIndex.IDS.ordinal()].finish();
+        final boolean tokenize = IndexType.TOKEN == type;
+        final int[] pos = tokenize ? map.get(key)[Data.MapIndex.POS.ordinal()].finish() : null;
+
         final long off = idxr.read5(index * 5L);
         final int oldSize = idxl.readNum(off);
         final IntList il = new IntList(oldSize + ids.length);
+        final IntList pl = tokenize ? new IntList(oldSize + ids.length) : null;
         for(int o = 0, c = 0; o < oldSize; ++o) {
           c += idxl.readNum();
           il.add(c);
+          if(tokenize)
+            pl.add(idxl.readNum());
         }
         // mark old slot as empty
         free.add((int) (idxl.cursor() - off), off);
         // write new ids
-        writeIds(key, il.add(ids), index++);
+        writeIds(key, il.add(ids), tokenize ? pl.add(pos) : null, index++);
       } else {
         index = -(index + 1);
         newKeys.add(key);
@@ -76,13 +82,14 @@ public final class UpdatableDiskValues extends DiskValues {
         writeIdOffset(newIndex--, off, ctext.put(oldIndex--, null));
       }
       // add the new key and its ids
-      writeIds(key, map.get(key), newIndex--);
+      writeIds(key, map.get(key)[Data.MapIndex.IDS.ordinal()],
+          map.get(key)[Data.MapIndex.POS.ordinal()], newIndex--);
     }
     size(sz + ns);
   }
 
   @Override
-  public synchronized void delete(final TokenObjMap<IntList> map) {
+  public synchronized void delete(final TokenObjMap<IntList[]> map) {
     // create a list of the indexes of the keys which should be completely deleted
     final IntList il = new IntList();
     int p = 0;
@@ -91,7 +98,7 @@ public final class UpdatableDiskValues extends DiskValues {
     for(final byte[] key : new TokenList(map).sort()) {
       p = get(key, p, sz);
       if(p < 0) throw Util.notExpected("Key does not exist: '%'", key);
-      if(deleteIds(p, key, map.get(key).sort().finish())) il.add(p);
+      if(deleteIds(p, key, map)) il.add(p);
       p++;
     }
     deleteKeys(il);
@@ -101,19 +108,40 @@ public final class UpdatableDiskValues extends DiskValues {
    * Removes record ids from the index.
    * @param index index of the key
    * @param key record key
-   * @param ids list of record ids to delete
+   * @param map a set of [key, id-list] pairs
    * @return {@code true} if list was completely deleted
    */
-  private boolean deleteIds(final int index, final byte[] key, final int... ids) {
+  private boolean deleteIds(final int index, final byte[] key, final TokenObjMap<IntList[]> map) {
     final long off = idxr.read5(index * 5L);
+    int[] order = null;
+    IntList idList = map.get(key)[Data.MapIndex.IDS.ordinal()], posList = null;
+    final boolean tokenize = IndexType.TOKEN == type;
+    if(tokenize) {
+      // tokenization: create array with offsets to ordered values
+      order = idList.createOrder();
+      posList = map.get(key)[Data.MapIndex.POS.ordinal()];
+    } else {
+      // no token index: simple sort
+      idList.sort();
+    }
+    int[] ids = idList.finish();
 
     // read each id from the list and skip the ones that should be deleted
     final int oldSize = idxl.readNum(off), delSize = ids.length, newSize = oldSize - delSize;
     final IntList newIds = new IntList(newSize);
+    final IntList newPos = tokenize ? new IntList(newSize) : null;
     for(int o = 0, d = 0, currId = 0; o < oldSize; o++) {
       currId += idxl.readNum();
-      if(d < delSize && currId == ids[d]) d++;
-      else newIds.add(currId);
+      int currPos = 0;
+      if (tokenize)
+        currPos = idxl.readNum();
+      if(d < delSize && currId == ids[d] && (!tokenize || idxl.readNum() == posList.get(order[d])))
+        d++;
+      else {
+        newIds.add(currId);
+        if (tokenize)
+          newPos.add(currPos);
+      }
     }
 
     // remove old ids
@@ -126,7 +154,7 @@ public final class UpdatableDiskValues extends DiskValues {
     }
 
     // write new ids
-    writeIds(key, newIds, index);
+    writeIds(key, newIds, newPos, index);
     return false;
   }
 
@@ -169,11 +197,12 @@ public final class UpdatableDiskValues extends DiskValues {
    * Writes a new ID list.
    * @param key key
    * @param ids id list
+   * @param pos pos list
    * @param index index in reference file
    */
-  private void writeIds(final byte[] key, final IntList ids, final int index) {
+  private void writeIds(final byte[] key, final IntList ids, final IntList pos, final int index) {
     // compute compressed size of distance list
-    final int[] dists = distances(ids);
+    final int[] dists = distances(ids, pos);
     final int sz = dists.length;
     int bytes = Num.length(sz);
     for(final int id : dists) bytes += Num.length(id);
@@ -183,7 +212,7 @@ public final class UpdatableDiskValues extends DiskValues {
 
     // write new id values
     writeIdOffset(index, offset, key);
-    idxl.writeNums(offset, dists);
+    idxl.writeNums(offset, ids.size(), dists);
 
     // update the cache entry
     cache.add(key, sz, offset + Num.length(sz));
@@ -212,12 +241,30 @@ public final class UpdatableDiskValues extends DiskValues {
   /**
    * Returns a new array which contains the id distances in ascending order.
    * @param ids id list
+   * @param pos pos list
    * @return differences
    */
-  private static int[] distances(final IntList ids) {
-    final int[] tmp = ids.sort().finish();
-    for(int l = tmp.length - 1; l > 0; --l) tmp[l] -= tmp[l - 1];
-    return tmp;
+  private int[] distances(final IntList ids, final IntList pos) {
+    int[] order = null;
+    int[] result;
+    if(IndexType.TOKEN == type) {
+      // tokenization: create array with offsets to ordered values
+      order = ids.createOrder();
+      result = new int[ids.size() * 2];
+    } else {
+      // no token index: simple sort
+      ids.sort();
+      result = new int[ids.size()];
+    }
+
+    int old = 0, j = 0;
+    for(int i = 0; i < ids.size(); i++) {
+      old = result[j++] = ids.get(i) - old;
+      if(IndexType.TOKEN == type)
+        result[j++] = pos.get(order[i]);
+    }
+
+    return result;
   }
 
   @Override

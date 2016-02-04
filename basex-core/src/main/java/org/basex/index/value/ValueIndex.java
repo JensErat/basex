@@ -37,13 +37,13 @@ public abstract class ValueIndex implements Index {
    * Deletes entries from the index.
    * @param map a set of [key, id-list] pairs
    */
-  public abstract void delete(final TokenObjMap<IntList> map);
+  public abstract void delete(final TokenObjMap<IntList[]> map);
 
   /**
    * Add entries to the index.
    * @param map a set of [key, id-list] pairs
    */
-  public abstract void add(final TokenObjMap<IntList> map);
+  public abstract void add(final TokenObjMap<IntList[]> map);
 
   /**
    * Flushes the buffered data.
